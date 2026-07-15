@@ -1,0 +1,40 @@
+const fs = require("fs").promises;
+const path = require("path");
+
+const LEADS_FILE = path.join(__dirname, "../../user_files/leads.json");
+
+async function addLead(senderJid, name, projectSummary) {
+    let leads = [];
+    try {
+        const data = await fs.readFile(LEADS_FILE, "utf8");
+        leads = JSON.parse(data);
+    } catch (err) {
+    }
+
+    const newLead = {
+        jid: senderJid,
+        name: name,
+        project: projectSummary,
+        timestamp: new Date().toISOString()
+    };
+
+    const exists = leads.find(l => l.jid === senderJid && l.project === projectSummary);
+    if (!exists) {
+        leads.push(newLead);
+        await fs.writeFile(LEADS_FILE, JSON.stringify(leads, null, 2));
+        console.log(`[32m?? [LEADS] New lead captured: ${name} - ${projectSummary}[0m`);
+        return true;
+    }
+    return false;
+}
+
+async function getAllLeads() {
+    try {
+        const data = await fs.readFile(LEADS_FILE, "utf8");
+        return JSON.parse(data);
+    } catch (err) {
+        return [];
+    }
+}
+
+module.exports = { addLead, getAllLeads };
